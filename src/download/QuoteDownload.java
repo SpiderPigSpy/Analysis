@@ -6,6 +6,7 @@
 
 package download;
 
+import bash.Quote;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
@@ -13,21 +14,12 @@ import org.jsoup.select.Elements;
  *
  * @author alex
  */
-public class Quote {
+public class QuoteDownload extends Quote {
     
     private final static String CLASS_UP = "up";
     private final static String CLASS_RATING = "rating";
     private final static String CLASS_TEXT = "text";
     private final static String CLASS_DATE = "date";
-    
-    public String num;
-    public String quote;
-    public String rating;
-    public String date;
-    
-    public Quote(){
-        
-    }
     
     public boolean parse(Element element){
         Elements dates = element.getElementsByClass(CLASS_DATE);

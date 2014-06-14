@@ -54,7 +54,7 @@ public class DownloadTask implements Runnable{
         }
         
         for (Element quote : quotes) {
-            Quote q = new Quote();
+            QuoteDownload q = new QuoteDownload();
             if (!q.parse(quote)){
                 continue;
             }
@@ -81,7 +81,7 @@ public class DownloadTask implements Runnable{
         return doc;
     }
     
-    private void save(String path, Quote quote){
+    private void save(String path, QuoteDownload quote){
         try {
             PrintWriter out = new PrintWriter(path);
             out.println(quote.num);

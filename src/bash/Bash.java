@@ -7,9 +7,11 @@
 package bash;
 
 import download.Downloader;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import lucene.Creator;
 
 /**
  *
@@ -17,11 +19,13 @@ import java.util.logging.Logger;
  */
 public class Bash {
 
-    public enum Status {Download, CreateIndex};
-    public static final Status status = Status.CreateIndex;
+    public enum Status {Download, CreateIndex, ReadIndex};
+    public static final Status status = Status.ReadIndex;
     
     public static final String HOME = System.getProperty("user.home");
     public static final String SEP = System.getProperty("file.separator");
+    public static final String FILE_DIR = HOME + SEP + "bash" + SEP + "files";
+    public static final String INDEX_DIR = HOME + SEP + "bash" + SEP + "index";
     
     public Downloader dloader;
     
@@ -34,8 +38,14 @@ public class Bash {
         switch (status){
             case Download:
                 for (int i = 0; i < 1; i++) {
-                    bash.startDownload(HOME + SEP + "bash", 1, 929);
+                    bash.startDownload(FILE_DIR, 1, 929);
                 }
+                break;
+            case CreateIndex:
+                bash.startLuceneIndexCreate();
+                break;
+            case ReadIndex:
+                bash.startLuceneReadIndex();
                 break;
         }
         
@@ -50,6 +60,19 @@ public class Bash {
         } catch (MalformedURLException ex) {
             Logger.getLogger(Bash.class.getName()).log(Level.SEVERE, "StartDownload Fail");
         }
+    }
+    
+    public void startLuceneIndexCreate(){
+        try {
+            Creator c = new Creator(INDEX_DIR, true);
+            c.create(FILE_DIR);
+        } catch (Exception ex) {
+            Logger.getLogger(Bash.class.getName()).log(Level.SEVERE, "Failed to create index", ex);
+        }
+    }
+    
+    public void startLuceneReadIndex(){
+        
     }
     
 }
