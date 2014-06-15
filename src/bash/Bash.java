@@ -35,7 +35,10 @@ public class Bash {
     public static final String SEP = System.getProperty("file.separator");
     public static final String FILES_DIR = HOME + SEP + "bash" + SEP + "files";
     public static final String INDEX_DIR = HOME + SEP + "bash" + SEP + "index";
-
+    
+    public static final int START_PAGE = 1;
+    public static final int END_PAGE = 929;
+    
     public Downloader dloader;
 
     /**
@@ -45,8 +48,8 @@ public class Bash {
         // TODO code application logic here
         ArgsParser ap = new ArgsParser(args);
         ap.addCommand(new Command("d",
-                "\n     [int start = 1]"
-              + "\n     [int end = 929]"
+                "\n     [int start = "+START_PAGE+"]"
+              + "\n     [int end = "+END_PAGE+"]"
               + "\n     Download bash quotes from start to end and save to files_path"));
         ap.addCommand(new Command("c",
                 "\n     Create lucene index at index_path, get files from files_path"));
@@ -71,18 +74,26 @@ public class Bash {
         Bash bash = new Bash();
         
         String fileDir = FILES_DIR;
-        if (ap.parseKeys.containsKey("f")){
-            fileDir = ap.parseKeys.get("f").args.get(1);
+        if (ap.parseKeys.containsKey("-f")){
+            fileDir = ap.parseKeys.get("-f").args.get(0);
         }
         
         String indexDir = INDEX_DIR;
-        if (ap.parseKeys.containsKey("l")){
-            indexDir = ap.parseKeys.get("l").args.get(1);
+        if (ap.parseKeys.containsKey("-l")){
+            indexDir = ap.parseKeys.get("-l").args.get(0);
         }
         
-        if (ap.parseKeys.containsKey("q")){
+        if (ap.parseKeys.containsKey("-d")){
             try {
-                bash.startQueryInfo(ap.parseKeys.get("q").args.get(0));
+                int start = START_PAGE;
+                int end = END_PAGE;
+                try {
+                    start = Integer.valueOf(ap.parseKeys.get("-d").args.get(0));
+                    end = Integer.valueOf(ap.parseKeys.get("-d").args.get(1));
+                } catch (Exception e) {
+                }
+                
+                bash.startDownload(fileDir, start, end);
             } catch (Exception e) {
                 ap.printHelp();
                 return;
@@ -90,23 +101,36 @@ public class Bash {
            
         }
         
-        switch (status) {
-            case Download:
-                for (int i = 0; i < 1; i++) {
-                    bash.startDownload(FILES_DIR, 1, 929);
-                }
-                break;
-            case CreateIndex:
-                bash.startLuceneIndexCreate();
-                break;
-            case CommonInfo:
-                bash.startCommonInfo();
-                break;
-            case QueryInfo:
-                bash.startQueryInfo("");
-                break;
+        if (ap.parseKeys.containsKey("-c")){
+            try {
+                bash.startLuceneIndexCreate(fileDir, indexDir);
+            } catch (Exception e) {
+                ap.printHelp();
+                return;
+            }
+           
         }
-
+        
+        if (ap.parseKeys.containsKey("-i")){
+            try {
+                bash.startCommonInfo(fileDir, indexDir);
+            } catch (Exception e) {
+                ap.printHelp();
+                return;
+            }
+           
+        }
+        
+        if (ap.parseKeys.containsKey("-q")){
+            try {
+                bash.startQueryInfo(ap.parseKeys.get("-q").args.get(0));
+            } catch (Exception e) {
+                ap.printHelp();
+                return;
+            }
+           
+        }
+        
     }
 
     public void startDownload(String path, int start, int end) {
@@ -118,19 +142,19 @@ public class Bash {
         }
     }
 
-    public void startLuceneIndexCreate() {
+    public void startLuceneIndexCreate(String filesDir, String indexDir) {
         try {
-            Creator c = new Creator(INDEX_DIR, true);
-            c.create(FILES_DIR);
+            Creator c = new Creator(indexDir, true);
+            c.create(filesDir);
         } catch (Exception ex) {
             Logger.getLogger(Bash.class.getName()).log(Level.SEVERE, "Failed to create index", ex);
         }
     }
 
-    public void startCommonInfo() {
+    public void startCommonInfo(String filesDir, String indexDir) {
         try {
             long start = new Date().getTime();
-            Searcher s = new Searcher(INDEX_DIR);
+            Searcher s = new Searcher(indexDir);
             //Распределение цитат по годам
             System.out.println("Распределение цитат по годам...");
             int all = 0;
@@ -166,7 +190,7 @@ public class Bash {
             int badYears = 0;
 
             for (int i = 0; i < 500000; i++) {
-                File f = new File(FILES_DIR + SEP + i + ".txt");
+                File f = new File(filesDir + SEP + i + ".txt");
                 if (!f.exists() | !f.isFile()) {
                     continue;
                 }
@@ -200,7 +224,7 @@ public class Bash {
             int[] ratingDowNum = new int[7];
 
             for (int i = 0; i < 500000; i++) {
-                File f = new File(FILES_DIR + SEP + i + ".txt");
+                File f = new File(filesDir + SEP + i + ".txt");
                 if (!f.exists() | !f.isFile()) {
                     continue;
                 }

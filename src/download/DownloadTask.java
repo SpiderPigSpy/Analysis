@@ -33,6 +33,7 @@ public class DownloadTask implements Runnable{
     private final String savePath;
     
     protected DownloadTask(int num, String _savePath){
+        System.out.println("Download and parse " + num);
         urlOne = ONE_QUOTE_URL + num;
         urlMulti = MULTI_QUOTE_URL + num;
         saveBase = _savePath + System.getProperty("file.separator");

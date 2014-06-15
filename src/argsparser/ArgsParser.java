@@ -34,17 +34,11 @@ public class ArgsParser {
         Command c = null;
         boolean found = false;
         for (String s : ARGS) {
-            System.out.println("Key " + s);
             if (keys.containsKey(s)){
-                System.out.println("    containes");
-                if (found) {
-                    parseKeys.put(c.KEY, c);
-                    System.out.println("    put");
-                }
                 c = new Command(s);
+                parseKeys.put(c.KEY, c);
                 found = true;
             } else if(found){
-                System.out.println("    Add command");
                 c.args.add(s);
             }
         }
