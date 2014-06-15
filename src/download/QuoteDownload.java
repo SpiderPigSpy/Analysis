@@ -26,20 +26,20 @@ public class QuoteDownload extends Quote {
         if (dates.size()!=1) {
             return false;
         }
-        date = dates.text();
+        rawDate = dates.text();
         
         Elements ratings = element.getElementsByClass(CLASS_RATING);
         if (ratings.size()!=1) {
             return false;
         }
-        rating = ratings.text();
+        rawRating = ratings.text();
         
         Elements ups = element.getElementsByClass(CLASS_UP);
         if (ups.size()!=1) {
             return false;
         }
         String quoteNum = ups.get(0).attr("href");
-        num = quoteNum.split("/")[2];
+        rawName = quoteNum.split("/")[2];
         
         Elements text = element.getElementsByClass(CLASS_TEXT);
         if (text.size() != 1){

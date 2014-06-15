@@ -8,13 +8,11 @@ package lucene;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.ru.RussianAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
@@ -33,21 +31,31 @@ public class Searcher {
     
     private final String INDEX_PATH;
     
-    public Searcher(String indexPath){
+    private IndexReader indexReader;
+    private IndexSearcher indexSearcher;
+    
+    public Searcher(String indexPath) throws IOException{
         INDEX_PATH = indexPath;
+        Directory directory = FSDirectory.open(new File(INDEX_PATH));
+        indexReader = DirectoryReader.open(directory);
+        
+        indexSearcher = new IndexSearcher(indexReader);
+    }
+    
+    private TopDocs applyQuery(String field, String searchString) throws IOException, ParseException{
+        Analyzer analyzer = new RussianAnalyzer(Version.LUCENE_48);
+        
+        String fieldSearch = field == null ? Lucene.FIELD_TEXT_TEXT : field;
+        QueryParser qP = new QueryParser(Version.LUCENE_48, fieldSearch, analyzer);
+        Query query = qP.parse(searchString);
+        TopDocs top = indexSearcher.search(query, 100);
+        
+        return top;
     }
     
     public void search(String field, String searchString) throws IOException, ParseException{
         System.out.println("Searcher::search searching for '" + searchString + "'");
-        Directory directory = FSDirectory.open(new File(INDEX_PATH));
-        IndexReader indexReader = DirectoryReader.open(directory);
-        
-        IndexSearcher indexSearcher = new IndexSearcher(indexReader);
-        
-        Analyzer analyzer = new RussianAnalyzer(Version.LUCENE_48);
-        QueryParser queryParser = new QueryParser(Version.LUCENE_48, field, analyzer);
-        Query query = queryParser.parse(searchString);
-        TopDocs top = indexSearcher.search(query, 100);
+        TopDocs top = applyQuery(field, searchString);
         
         System.out.println("Searcher::search found " + top.totalHits);
         
@@ -55,10 +63,25 @@ public class Searcher {
             System.out.println(doc.doc);
             Document qdoc = indexReader.document(doc.doc);
             DocQuote q = new DocQuote(qdoc);
-            System.out.println("    " + q.num);
-            System.out.println("    " + q.date);
-            System.out.println("    " + q.rating);
+            q.convert();
+            
+            System.out.println("    " + q.rawName);
+            System.out.println("    raw: " + q.rawDate);
+            System.out.println("    " + q.date.toZonedDateTime());
+            System.out.println("    " + q.rawRating);
             System.out.println("    " + q.quote);
         }
+    }
+    
+    public void search(String query) throws IOException, ParseException{
+        search(null, query);
+    }
+    
+    public int getHits(String field, String searchString) throws IOException, ParseException{
+        return applyQuery(field, searchString).totalHits;
+    }
+    
+    public int getHits(String searchString) throws IOException, ParseException{
+        return applyQuery(null, searchString).totalHits;
     }
 }

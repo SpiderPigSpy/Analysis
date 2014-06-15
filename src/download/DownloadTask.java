@@ -59,7 +59,7 @@ public class DownloadTask implements Runnable{
                 continue;
             }
             
-            String multiPath = saveBase + q.num + ".txt";
+            String multiPath = saveBase + q.rawName + ".txt";
             
             File file = new File(multiPath);
             if (file.exists()){
@@ -84,9 +84,9 @@ public class DownloadTask implements Runnable{
     private void save(String path, QuoteDownload quote){
         try {
             PrintWriter out = new PrintWriter(path);
-            out.println(quote.num);
-            out.println(quote.date);
-            out.println(quote.rating);
+            out.println(quote.rawName);
+            out.println(quote.rawDate);
+            out.println(quote.rawRating);
             out.println(quote.quote);
             out.close();
         } catch (FileNotFoundException ex) {

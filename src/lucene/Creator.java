@@ -9,10 +9,8 @@ package lucene;
 import bash.Quote;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.ru.RussianAnalyzer;
-import org.apache.lucene.benchmark.byTask.utils.FileUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
@@ -74,9 +72,9 @@ public class Creator {
             try {
                 Quote q = new Quote(file);
                 Document doc = new Document();
-                doc.add(new StringField(Lucene.FIELD_NAME, q.num, Field.Store.YES));
-                doc.add(new StringField(Lucene.FIELD_RATING, q.rating, Field.Store.YES));
-                doc.add(new StringField(Lucene.FIELD_DATE, q.date, Field.Store.YES));
+                doc.add(new StringField(Lucene.FIELD_NAME, q.rawName, Field.Store.YES));
+                doc.add(new StringField(Lucene.FIELD_RATING, q.rawRating, Field.Store.YES));
+                doc.add(new StringField(Lucene.FIELD_DATE, q.rawDate, Field.Store.YES));
                 doc.add(new StringField(Lucene.FIELD_TEXT_STRING, q.quote, Field.Store.YES));
                 doc.add(new TextField(Lucene.FIELD_TEXT_TEXT, q.quote, Field.Store.YES));
                 try {

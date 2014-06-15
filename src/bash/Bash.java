@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import lucene.Creator;
+import lucene.Lucene;
 import lucene.Searcher;
 import org.apache.lucene.queryparser.classic.ParseException;
 
@@ -75,14 +76,20 @@ public class Bash {
     }
     
     public void startLuceneReadIndex(){
-        Searcher s = new Searcher(INDEX_DIR);
         try {
             long start = new Date().getTime();
-            s.search(lucene.Lucene.FIELD_TEXT_TEXT, "небритый");
+            Searcher s = new Searcher(INDEX_DIR);
+//            s.search(Lucene.FIELD_DATE + ":2007*");
+            int all = 0;
+            for (int i = 2004; i < 2015; i++) {
+                int res = s.getHits(Lucene.FIELD_DATE + ":"+i+"*");
+                all += res;
+                System.out.println(i + " " + res);
+            }
+            System.out.println("All " + all);
+            
             System.out.println("time: " + (new Date().getTime()-start));
-        } catch (IOException ex) {
-            Logger.getLogger(Bash.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ParseException ex) {
+        } catch (IOException | ParseException ex) {
             Logger.getLogger(Bash.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

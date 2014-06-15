@@ -16,9 +16,9 @@ import org.apache.lucene.document.Document;
 public class DocQuote extends Quote{
     
     public DocQuote(Document doc){
-        num = doc.get(Lucene.FIELD_NAME);
-        rating = doc.get(Lucene.FIELD_RATING);
-        date = doc.get(Lucene.FIELD_DATE);
+        rawName = doc.get(Lucene.FIELD_NAME);
+        rawRating = doc.get(Lucene.FIELD_RATING);
+        rawDate = doc.get(Lucene.FIELD_DATE);
         quote = doc.get(Lucene.FIELD_TEXT_STRING);
     }
     
