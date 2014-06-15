@@ -26,6 +26,8 @@ public class Quote {
     
     private static Logger logger = Logger.getLogger(Quote.class.getName());
     
+    private final String path;
+    
    /*
     * В порядке появления в файле
     */
@@ -37,8 +39,12 @@ public class Quote {
     public GregorianCalendar date = new GregorianCalendar();
     public int rating = 0;
     
+    public int year;
+    public int month;
+    public int day;
+    
     public Quote(){
-        
+        path = "";
     }
     
     public Quote(File file) throws IOException{
@@ -46,6 +52,7 @@ public class Quote {
     }
     
     public Quote(String fileName) throws FileNotFoundException, IOException{
+        path = fileName;
         FileReader a = new FileReader(new File(fileName));
         BufferedReader br = new BufferedReader(a);
         rawName = br.readLine();
@@ -71,16 +78,20 @@ public class Quote {
             String hourStr = splitDoub[0];
             String minuteStr = splitDoub[1];
             
+            year = Integer.valueOf(yearStr);
+            month = Integer.valueOf(monthStr);
+            day = Integer.valueOf(dayStr);
+            
             date = new GregorianCalendar(
-                    Integer.valueOf(yearStr),
-                    Integer.valueOf(monthStr) - 1,
-                    Integer.valueOf(dayStr),
+                    year,
+                    month - 1,
+                    day,
                     Integer.valueOf(hourStr),
                     Integer.valueOf(minuteStr)
             );
             
         } catch (Exception e) {
-            logger.log(Level.WARNING, "convert failed", e);
+//            logger.log(Level.WARNING, "convert failed " + path, e);
         }
         
     }
