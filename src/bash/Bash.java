@@ -9,9 +9,12 @@ package bash;
 import download.Downloader;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import lucene.Creator;
+import lucene.Searcher;
+import org.apache.lucene.queryparser.classic.ParseException;
 
 /**
  *
@@ -72,7 +75,16 @@ public class Bash {
     }
     
     public void startLuceneReadIndex(){
-        
+        Searcher s = new Searcher(INDEX_DIR);
+        try {
+            long start = new Date().getTime();
+            s.search(lucene.Lucene.FIELD_TEXT_TEXT, "небритый");
+            System.out.println("time: " + (new Date().getTime()-start));
+        } catch (IOException ex) {
+            Logger.getLogger(Bash.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParseException ex) {
+            Logger.getLogger(Bash.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
 }

@@ -12,4 +12,10 @@ package lucene;
  */
 public class Lucene {
     
+    public static final String FIELD_NAME = "name";
+    public static final String FIELD_RATING = "rating";
+    public static final String FIELD_DATE = "date";
+    public static final String FIELD_TEXT_STRING = "text";
+    public static final String FIELD_TEXT_TEXT = "text";
+    
 }
