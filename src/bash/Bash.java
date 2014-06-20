@@ -13,11 +13,17 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import lucene.Creator;
 import lucene.Lucene;
 import lucene.Searcher;
+import net.sourceforge.argparse4j.ArgumentParsers;
+import static net.sourceforge.argparse4j.impl.Arguments.storeTrue;
+import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.inf.ArgumentParserException;
+import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.lucene.queryparser.classic.ParseException;
 
 /**
@@ -46,90 +52,104 @@ public class Bash {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        ArgsParser ap = new ArgsParser(args);
-        ap.addCommand(new Command("d",
-                "\n     [int start = "+START_PAGE+"]"
-              + "\n     [int end = "+END_PAGE+"]"
-              + "\n     Download bash quotes from start to end and save to files_path"));
-        ap.addCommand(new Command("c",
-                "\n     Create lucene index at index_path, get files from files_path"));
-        ap.addCommand(new Command("i",
-                "\n     Print common info"));
-        ap.addCommand(new Command("q",
-                "\n     [query]"
-              + "\n     Analyze by query"));
-        ap.addCommand(new Command("f",
-                "\n     [str files_path = " + FILES_DIR + "]"
-              + "\n     use files_path to access or save quotes files"));
-        ap.addCommand(new Command("l",
-                "\n     [str index_path = " + INDEX_DIR + "]"
-              + "\n     use index_path to access or create lucene index"));
-
-        if (args.length == 0) {
-            ap.printHelp();
-            return;
+        long startTime = new Date().getTime();
+        ArgumentParser parser = ArgumentParsers.newArgumentParser("Bash")
+                .defaultHelp(true)
+                .description("Download and analyze bash.im quotes");
+        
+        parser.addArgument("-f", "--files-path")
+                .dest("files")
+                .help("Path to store downloaded files")
+                .required(false)
+                .setDefault(FILES_DIR)
+                .metavar("FILES_PATH")
+                .type(String.class);
+        
+        parser.addArgument("-l", "--lucene-path")
+                .dest("lucene")
+                .help("Path to store lucene index files")
+                .required(false)
+                .setDefault(INDEX_DIR)
+                .metavar("LUCENE_PATH")
+                .type(String.class);
+        
+        parser.addArgument("-D", "--Download")
+                .dest("download")
+                .help("Download quotes. Use '-d START END' to specify pages")
+                .required(false)
+                .action(storeTrue());
+        
+        parser.addArgument("-d")
+                .dest("default")
+                .help("Default download pages: from START to END")
+                .required(false)
+                .nargs(2)
+                .metavar("START","END")
+                .setDefault(START_PAGE, END_PAGE)
+                .type(Integer.class);
+        
+        parser.addArgument("-c")
+                .dest("create")
+                .help("Create index in index folder")
+                .required(false)
+                .action(storeTrue());
+        
+        parser.addArgument("-i")
+                .dest("info")
+                .help("General qoute analyze")
+                .required(false)
+                .action(storeTrue());
+        
+        Namespace ns = null;
+        try {
+            ns = parser.parseArgs(args);
+        } catch (ArgumentParserException e) {
+            parser.handleError(e);
+            System.exit(1);
         }
         
-        ap.parse();
+        
         Bash bash = new Bash();
         
-        String fileDir = FILES_DIR;
-        if (ap.parseKeys.containsKey("-f")){
-            fileDir = ap.parseKeys.get("-f").args.get(0);
+        String filesPath = FILES_DIR;
+        String indexPath = INDEX_DIR;
+        
+        boolean download = false;
+        int downloadStart = START_PAGE;
+        int downloadEnd = END_PAGE;
+        boolean baseAnalyze = false;
+        boolean createIndex = false;
+        
+        System.out.println(ns);
+        
+        try {
+            download = ns.getBoolean("download");
+            downloadStart = ((List<Integer>) ns.get("default")).get(0);
+            downloadEnd = ((List<Integer>) ns.get("default")).get(1);
+            baseAnalyze = ns.getBoolean("info");
+            createIndex = ns.getBoolean("create");
+            
+            filesPath = ns.getString("files") != null ? ns.getString("files") : FILES_DIR;
+            indexPath = ns.getString("lucene") != null ? ns.getString("lucene") : INDEX_DIR;
+            
+            
+        } catch (Exception e) {
+            System.out.println("Error during args parse");
         }
         
-        String indexDir = INDEX_DIR;
-        if (ap.parseKeys.containsKey("-l")){
-            indexDir = ap.parseKeys.get("-l").args.get(0);
+        if (download){
+            bash.startDownload(filesPath, downloadStart, downloadEnd);
         }
         
-        if (ap.parseKeys.containsKey("-d")){
-            try {
-                int start = START_PAGE;
-                int end = END_PAGE;
-                try {
-                    start = Integer.valueOf(ap.parseKeys.get("-d").args.get(0));
-                    end = Integer.valueOf(ap.parseKeys.get("-d").args.get(1));
-                } catch (Exception e) {
-                }
-                
-                bash.startDownload(fileDir, start, end);
-            } catch (Exception e) {
-                ap.printHelp();
-                return;
-            }
-           
+        if (createIndex){
+            bash.startLuceneIndexCreate(filesPath, indexPath);
         }
         
-        if (ap.parseKeys.containsKey("-c")){
-            try {
-                bash.startLuceneIndexCreate(fileDir, indexDir);
-            } catch (Exception e) {
-                ap.printHelp();
-                return;
-            }
-           
+        if (baseAnalyze){
+            bash.startCommonInfo(filesPath, indexPath);
         }
         
-        if (ap.parseKeys.containsKey("-i")){
-            try {
-                bash.startCommonInfo(fileDir, indexDir);
-            } catch (Exception e) {
-                ap.printHelp();
-                return;
-            }
-           
-        }
-        
-        if (ap.parseKeys.containsKey("-q")){
-            try {
-                bash.startQueryInfo(ap.parseKeys.get("-q").args.get(0));
-            } catch (Exception e) {
-                ap.printHelp();
-                return;
-            }
-           
-        }
+        System.out.println("Total time: " + (new Date().getTime() -startTime) + " ms");
         
     }
 
@@ -265,7 +285,7 @@ public class Bash {
                 System.out.println((i + 1) + "    " + ratingDow[i]);
             }
 
-            System.out.println("time: " + (new Date().getTime() - start) + " ms");
+            System.out.println("Basic analyze time: " + (new Date().getTime() - start) + " ms");
         } catch (IOException | ParseException ex) {
             Logger.getLogger(Bash.class.getName()).log(Level.SEVERE, null, ex);
         }
