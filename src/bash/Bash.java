@@ -7,6 +7,7 @@ package bash;
 
 import argsparser.ArgsParser;
 import argsparser.Command;
+import download.DownloadTask;
 import download.Downloader;
 import java.io.File;
 import java.io.IOException;
@@ -56,6 +57,12 @@ public class Bash {
         ArgumentParser parser = ArgumentParsers.newArgumentParser("Bash")
                 .defaultHelp(true)
                 .description("Download and analyze bash.im quotes");
+        
+        parser.addArgument("-s")
+                .dest("show")
+                .help("Show quotes from main page")
+                .required(false)
+                .action(storeTrue());
         
         parser.addArgument("-f", "--files-path")
                 .dest("files")
@@ -119,10 +126,10 @@ public class Bash {
         int downloadEnd = END_PAGE;
         boolean baseAnalyze = false;
         boolean createIndex = false;
-        
-        System.out.println(ns);
+        boolean showIndexQuotes = false;
         
         try {
+            showIndexQuotes = ns.getBoolean("show");
             download = ns.getBoolean("download");
             downloadStart = ((List<Integer>) ns.get("default")).get(0);
             downloadEnd = ((List<Integer>) ns.get("default")).get(1);
@@ -135,6 +142,10 @@ public class Bash {
             
         } catch (Exception e) {
             System.out.println("Error during args parse");
+        }
+        
+        if (showIndexQuotes){
+            bash.showIndexQuotes();
         }
         
         if (download){
@@ -151,6 +162,22 @@ public class Bash {
         
         System.out.println("Total time: " + (new Date().getTime() -startTime) + " ms");
         
+    }
+    
+    public void start(String[] args){
+        
+    }
+    
+    public void showIndexQuotes(){
+        System.out.println("Quotes from index page:");
+        DownloadTask dt = new DownloadTask();
+        List<Quote> list = dt.getFromUrl(DownloadTask.BASH_URL);
+        for (Quote q : list) {
+            System.out.println("Номер " + q.rawName);
+            System.out.println("    рейтинг " + q.rawRating);
+            System.out.println("    " + q.quote);
+            System.out.println("========================");
+        }
     }
 
     public void startDownload(String path, int start, int end) {
