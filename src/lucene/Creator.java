@@ -9,6 +9,10 @@ package lucene;
 import bash.Quote;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.stream.Stream;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.ru.RussianAnalyzer;
 import org.apache.lucene.document.Document;
@@ -38,10 +42,17 @@ public class Creator {
             throw new Exception("Index folder is a file");
         }
         
+        
+        
         if (dir.exists() & deleteOld){
-            for (File file : dir.listFiles()) {
-                file.delete();
-            }
+//            for (File file : dir.listFiles()) {
+//                file.delete();
+//            }
+            Stream<Path> st = Files.walk(dir.toPath(), 
+                    FileVisitOption.FOLLOW_LINKS);
+            st.forEach((file) -> {
+                file.toFile().delete();
+            });
         }
         
         if (!dir.exists()){
@@ -67,8 +78,15 @@ public class Creator {
         
         int i = 1;
         
-        for (File file : folder.listFiles()) {
-            System.out.println(i++ + "/46354 Adding " + file);
+        Stream<Path> st = Files.walk(folder.toPath(), 
+                FileVisitOption.FOLLOW_LINKS);
+        
+//        final long count = st.count();
+        
+        st.forEach((Path f) -> {
+            File file = f.toFile();
+//            System.out.println("/"+count+" Adding " + file);
+            System.out.println("Adding " + file);
             try {
                 Quote q = new Quote(file);
                 Document doc = new Document();
@@ -87,7 +105,7 @@ public class Creator {
                 System.out.println("    failed");
             }
             
-        }
+        });
         
         writer.close();
     }

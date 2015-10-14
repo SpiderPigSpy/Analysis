@@ -101,6 +101,12 @@ public class Bash {
                 .required(false)
                 .action(storeTrue());
         
+        parser.addArgument("-C")
+                .dest("deleteCreate")
+                .help("Delete old index in index folder and create new")
+                .required(false)
+                .action(storeTrue());
+        
         parser.addArgument("-i")
                 .dest("info")
                 .help("General qoute analyze")
@@ -127,6 +133,7 @@ public class Bash {
         boolean baseAnalyze = false;
         boolean createIndex = false;
         boolean showIndexQuotes = false;
+        boolean deleteCreate = false;
         
         try {
             showIndexQuotes = ns.getBoolean("show");
@@ -135,6 +142,7 @@ public class Bash {
             downloadEnd = ((List<Integer>) ns.get("default")).get(1);
             baseAnalyze = ns.getBoolean("info");
             createIndex = ns.getBoolean("create");
+            deleteCreate = ns.getBoolean("deleteCreate");
             
             filesPath = ns.getString("files") != null ? ns.getString("files") : FILES_DIR;
             indexPath = ns.getString("lucene") != null ? ns.getString("lucene") : INDEX_DIR;
@@ -152,8 +160,8 @@ public class Bash {
             bash.startDownload(filesPath, downloadStart, downloadEnd);
         }
         
-        if (createIndex){
-            bash.startLuceneIndexCreate(filesPath, indexPath);
+        if (createIndex | deleteCreate){
+            bash.startLuceneIndexCreate(filesPath, indexPath, deleteCreate);
         }
         
         if (baseAnalyze){
@@ -161,7 +169,7 @@ public class Bash {
         }
         
         System.out.println("Total time: " + (new Date().getTime() -startTime) + " ms");
-        
+    
     }
     
     public void start(String[] args){
@@ -189,9 +197,9 @@ public class Bash {
         }
     }
 
-    public void startLuceneIndexCreate(String filesDir, String indexDir) {
+    public void startLuceneIndexCreate(String filesDir, String indexDir, boolean deleteOld) {
         try {
-            Creator c = new Creator(indexDir, true);
+            Creator c = new Creator(indexDir, deleteOld);
             c.create(filesDir);
         } catch (Exception ex) {
             Logger.getLogger(Bash.class.getName()).log(Level.SEVERE, "Failed to create index", ex);
